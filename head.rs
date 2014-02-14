@@ -5,25 +5,24 @@ use std::path::Path;
 mod common;
 
 fn head_file(filename: &str, linecount: int, bytecount: int) {
-    std::io::io_error::cond.trap(|e| {
-        if e.kind != std::io::EndOfFile {
-            std::io::stderr().write_line(format!("head: {:s}: {:s}", filename, e.desc));
-        }
-    }).inside(|| {
+    match std::io::result(|| {
         let mut f = File::open(&Path::new(filename));
         if f.is_none() {
             return;
         }
         head_reader(filename, f.get_mut_ref(), linecount, bytecount);
-    });
+    }) {
+        Err(e) => {
+            if e.kind != std::io::EndOfFile {
+                std::io::stderr().write_line(format!("head: {:s}: {:s}", filename, e.desc));
+            }
+        }
+        _ => {}
+    };
 }
 
 fn head_reader(filename: &str, f: &mut std::io::Reader, linecount: int, bytecount: int) {
-    std::io::io_error::cond.trap(|e| {
-        if e.kind != std::io::EndOfFile {
-            std::io::stderr().write_line(format!("head: {:s}: {:s}", filename, e.desc));
-        }
-    }).inside(|| {
+    match std::io::result(|| {
         let mut stdout = std::io::stdout();
         if bytecount > 0 {
             if !f.eof() {
@@ -54,7 +53,14 @@ fn head_reader(filename: &str, f: &mut std::io::Reader, linecount: int, bytecoun
                 }
             }
         }
-    })
+    }) {
+        Err(e) => {
+            if e.kind != std::io::EndOfFile {
+                std::io::stderr().write_line(format!("head: {:s}: {:s}", filename, e.desc));
+            }
+        }
+        _ => {}
+    };
 }
 
 fn main() {
