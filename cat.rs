@@ -20,7 +20,7 @@ fn main() {
     match os::args() {
         [_] => {
             match io::result(|| {
-                copy_to_stdout(& mut io::stdin() as &mut Reader);
+                copy_to_stdout(&mut io::stdin() as &mut Reader);
             }) {
                 Err(e) => {
                     if e.kind != io::EndOfFile {
