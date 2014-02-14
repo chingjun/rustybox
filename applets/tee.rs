@@ -1,13 +1,13 @@
-extern mod extra;
 use extra::getopts::groups::{getopts,optflag};
 use std::io::fs::File;
 use std::path::Path;
-mod common;
-fn main() {
+use std;
+use common;
+
+pub fn main(args: &[~str]) {
     let opts = ~[
         optflag("a", "", "Append the output to the files rather than overwriting them."),
     ];
-    let args = std::os::args();
     let mut stderr = std::io::stderr();
     let matches = match getopts(args.tail(), opts) {
         Err(f) => {

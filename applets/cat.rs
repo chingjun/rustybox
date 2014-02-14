@@ -1,4 +1,4 @@
-use std::os;
+use std;
 use std::io;
 use std::io::fs::File;
 use std::path::Path;
@@ -16,8 +16,8 @@ fn copy_to_stdout(f: &mut std::io::Reader) {
     }
 }
 
-fn main() {
-    match os::args() {
+pub fn main(args: &[~str]) {
+    match args {
         [_] => {
             match io::result(|| {
                 copy_to_stdout(&mut io::stdin() as &mut Reader);

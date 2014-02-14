@@ -1,8 +1,8 @@
-extern mod extra;
 use extra::getopts::groups::{getopts,optopt};
 use std::io::fs::File;
 use std::path::Path;
-mod common;
+use std;
+use common;
 
 fn head_file(filename: &str, linecount: int, bytecount: int) {
     match std::io::result(|| {
@@ -63,12 +63,11 @@ fn head_reader(filename: &str, f: &mut std::io::Reader, linecount: int, bytecoun
     };
 }
 
-fn main() {
+pub fn main(args: &[~str]) {
     let opts = ~[
         optopt("n", "", "number of lines", "lines"),
         optopt("c", "", "number of bytes", "bytes"),
     ];
-    let args = std::os::args();
     let mut stderr = std::io::stderr();
     let matches = match getopts(args.tail(), opts) {
         Err(f) => {
