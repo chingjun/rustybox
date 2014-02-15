@@ -73,7 +73,8 @@ pub fn main(args: &[~str]) {
         Err(f) => {
             stderr.write_line(f.to_err_msg());
             common::print_usage("head [-n lines | -c bytes] [file ...]", opts);
-            fail!();
+            std::os::set_exit_status(1);
+            return;
         }
         Ok(m) => { m }
     };
@@ -81,19 +82,29 @@ pub fn main(args: &[~str]) {
     let c = match matches.opt_str("c") {
         Some(s) => match from_str::<int>(s) {
             Some(n) if n > 0 => n,
-            _ => {fail!(format!("illegal byte count -- {}", s));}
+            _ => {
+                stderr.write_line(format!("illegal byte count -- {}", s));
+                std::os::set_exit_status(1);
+                return;
+            }
         },
         None => -1
     };
     let n = match matches.opt_str("n") {
         Some(s) => match from_str::<int>(s) {
             Some(n) if n > 0 => n,
-            _ => {fail!(format!("illegal line count -- {}", s));}
+            _ => {
+                stderr.write_line(format!("illegal line count -- {}", s));
+                std::os::set_exit_status(1);
+                return;
+            }
         },
         None => if c > 0 { -1 } else { 10 }
     };
     if n * c >= 0 {
-        fail!("can't combine line and byte counts");
+        stderr.write_line("can't combine line and byte counts");
+        std::os::set_exit_status(1);
+        return;
     }
     match matches.free {
         [] => {

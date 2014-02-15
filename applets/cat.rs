@@ -25,6 +25,7 @@ pub fn main(args: &[~str]) {
                 Err(e) => {
                     if e.kind != io::EndOfFile {
                         io::stderr().write_line(format!("cat: stdin: {:s}", e.desc));
+                        std::os::set_exit_status(1);
                     }
                 }
                 _ => {}
@@ -41,6 +42,7 @@ pub fn main(args: &[~str]) {
                 }) {
                     Err(e) => {
                         io::stderr().write_line(format!("cat: {:s}: {:s}", *fname, e.desc));
+                        std::os::set_exit_status(1);
                     }
                     _ => {}
                 }

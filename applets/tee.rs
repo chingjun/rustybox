@@ -13,7 +13,8 @@ pub fn main(args: &[~str]) {
         Err(f) => {
             stderr.write_line(f.to_err_msg());
             common::print_usage("usage: tee [-a] [file ...]", opts);
-            fail!();
+            std::os::set_exit_status(1);
+            return;
         }
         Ok(m) => { m }
     };
@@ -30,6 +31,7 @@ pub fn main(args: &[~str]) {
         }) {
             Err(e) => {
                 std::io::stderr().write_line(format!("tee: {:s}: {:s}", *filename, e.desc));
+                std::os::set_exit_status(1);
             }
             _ => {}
         };
@@ -50,6 +52,7 @@ pub fn main(args: &[~str]) {
             Err(e) => {
                 if e.kind != std::io::EndOfFile {
                     std::io::stderr().write_line(format!("tee: {:s}", e.desc));
+                    std::os::set_exit_status(1);
                 } else {
                     break;
                 }
