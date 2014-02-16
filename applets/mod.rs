@@ -4,6 +4,7 @@ mod dirname;
 mod echo;
 mod head;
 mod pwd;
+mod rmdir;
 mod sleep;
 mod tee;
 mod yes;
@@ -16,6 +17,7 @@ pub fn find_applet(name: &str) -> Option<fn(&[~str])> {
         "echo" => Some(echo::main),
         "head" => Some(head::main),
         "pwd" => Some(pwd::main),
+        "rmdir" => Some(rmdir::main),
         "sleep" => Some(sleep::main),
         "tee" => Some(tee::main),
         "yes" => Some(yes::main),
