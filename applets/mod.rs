@@ -1,4 +1,5 @@
 mod cat;
+mod clear;
 mod dirname;
 mod echo;
 mod head;
@@ -10,6 +11,7 @@ mod yes;
 pub fn find_applet(name: &str) -> Option<fn(&[~str])> {
     match name {
         "cat" => Some(cat::main),
+        "clear" => Some(clear::main),
         "dirname" => Some(dirname::main),
         "echo" => Some(echo::main),
         "head" => Some(head::main),
