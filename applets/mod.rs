@@ -8,6 +8,7 @@ mod pwd;
 mod rmdir;
 mod sleep;
 mod tee;
+mod wc;
 mod yes;
 
 pub fn find_applet(name: &str) -> Option<fn(&[~str])> {
@@ -22,6 +23,7 @@ pub fn find_applet(name: &str) -> Option<fn(&[~str])> {
         "rmdir" => Some(rmdir::main),
         "sleep" => Some(sleep::main),
         "tee" => Some(tee::main),
+        "wc" => Some(wc::main),
         "yes" => Some(yes::main),
         _ => None
     }
