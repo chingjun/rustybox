@@ -8,6 +8,7 @@ mod head;
 mod mkdir;
 mod pwd;
 mod rmdir;
+mod seq;
 mod sleep;
 mod tee;
 mod _true;
@@ -27,6 +28,7 @@ pub fn find_applet(name: &str) -> Option<fn(&[~str])> {
         "mkdir" => Some(mkdir::main),
         "pwd" => Some(pwd::main),
         "rmdir" => Some(rmdir::main),
+        "seq" => Some(seq::main),
         "sleep" => Some(sleep::main),
         "tee" => Some(tee::main),
         "true" => Some(_true::main),
