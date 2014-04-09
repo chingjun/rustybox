@@ -22,21 +22,19 @@ pub fn main(args: &[~str]) {
     let mut stdout = std::io::stdout();
 
     if !matches.opt_present("P") {
-        match std::os::getenv("PWD") {
-            Some(ref cwd) if cwd[0] == '/' as u8 => {
-                match (Path::new(cwd.as_slice()).stat(), Path::new(".").stat()) {
-                    (Ok(cwd_stat), Ok(dot_stat)) => {
-                        if cwd_stat.unstable.device == dot_stat.unstable.device && cwd_stat.unstable.inode == dot_stat.unstable.inode {
-                            println(*cwd);
-                            return;
-                        }
-                    }
-                    _ => {
+        let cwd = std::os::getenv("PWD");
+        // If we're trying to find the logical current directory and that fails, behave as if -P was specified.
+        if cwd.is_some() && cwd.as_ref().unwrap()[0] == '/' as u8 {
+            let cwd = cwd.unwrap();
+            match (Path::new(cwd.as_slice()).stat(), Path::new(".").stat()) {
+                (Ok(cwd_stat), Ok(dot_stat)) => {
+                    if cwd_stat.unstable.device == dot_stat.unstable.device && cwd_stat.unstable.inode == dot_stat.unstable.inode {
+                        println(cwd);
+                        return;
                     }
                 }
-                println("err"); //TODO
+                _ => {}
             }
-            _ => {}
         }
     }
     
