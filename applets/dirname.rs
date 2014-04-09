@@ -1,18 +1,18 @@
 use std;
-use std::io::{stderr,stdout};
 use std::path::Path;
+use common;
 
 pub fn main(args: &[~str]) {
     match args {
         [_] => {
-            stderr().write_line("usage: dirname path");
+            common::err_write_line("usage: dirname path");
             std::os::set_exit_status(1);
             return;
         }
         [_, ref f, ..] => {
             let p = Path::new(f.as_slice());
-            stdout().write(p.dirname());
-            stdout().write_char('\n');
+            let _ = std::io::stdout().write(p.dirname()); //TODO should handle return value?
+            let _ = std::io::stdout().write_char('\n'); //TODO should handle return value?
         }
         _ => unreachable!()
     }

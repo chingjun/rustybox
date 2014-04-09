@@ -1,4 +1,4 @@
-use extra::getopts::groups::{getopts,optflag};
+use getopts::{getopts,optflag};
 use std;
 use std::io::fs::File;
 use std::path::Path;
@@ -10,10 +10,9 @@ pub fn main(args: &[~str]) {
         optflag("w", "", "The number of words in each input file is written to the standard output."),
         optflag("l", "", "The number of lines in each input file is written to the standard output."),
     ];
-    let mut stderr = std::io::stderr();
     let matches = match getopts(args.tail(), opts) {
         Err(f) => {
-            stderr.write_line(f.to_err_msg());
+            common::err_write_line(f.to_err_msg());
             common::print_usage("wc [-clw] [file ...]", opts);
             std::os::set_exit_status(1);
             return;
@@ -26,23 +25,23 @@ pub fn main(args: &[~str]) {
         (c,w,l) => (c,w,l)
     };
 
-    match matches.free {
+    match matches.free.as_slice() {
         [] => {
-            let result = wc_reader("", & mut std::io::stdin() as &mut Reader);
+            let result = wc_reader("", & mut std::io::stdin());
             print_result("", result, print_char, print_word, print_line);
         }
         [..filenames] => {
             let mut total: (u64, u64, u64) = (0,0,0);
 
             for filename in filenames.iter() {
-                let mut f = match std::io::result(|| { File::open(&Path::new(filename.as_slice())) }) {
+                let mut f = match File::open(&Path::new(filename.as_slice())) {
                     Err(e) => {
-                        std::io::stderr().write_line(format!("wc: {:s}: {:s}", *filename, e.desc));
+                        common::err_write_line(format!("wc: {:s}: {:s}", *filename, e.desc));
                         return;
                     }
                     Ok(f) => f
                 };
-                let result = wc_reader(*filename, f.get_mut_ref());
+                let result = wc_reader(*filename, &mut f);
                 print_result(*filename, result, print_char, print_word, print_line);
                 total = match (total, result) {
                     ((a1,b1,c1), (a2,b2,c2)) => (a1+a2, b1+b2, c1+c2)
@@ -56,7 +55,7 @@ pub fn main(args: &[~str]) {
     }
 }
 
-fn wc_reader(filename: &str, reader: &mut std::io::Reader) -> (u64, u64, u64) {
+fn wc_reader<R: std::io::Reader> (filename: &str, reader: &mut R) -> (u64, u64, u64) {
     let mut buf = [0u8, ..4096];
 
     let mut linecount = 0;
@@ -64,36 +63,32 @@ fn wc_reader(filename: &str, reader: &mut std::io::Reader) -> (u64, u64, u64) {
     let mut wordcount = 0;
     let mut inword = false;
 
-    while !reader.eof() {
-        let len = match std::io::result(|| { reader.read(buf) }) {
-            Err(e) => {
-                if e.kind != std::io::EndOfFile {
-                    std::io::stderr().write_line(format!("wc: {:s}: {:s}", filename, e.desc));
-                }
-                break;
-
+    let len = match reader.read(buf) {
+        Err(e) => {
+            if e.kind != std::io::EndOfFile {
+                common::err_write_line(format!("wc: {:s}: {:s}", filename, e.desc));
             }
-            Ok(Some(l)) => l,
-            _ => break
-        };
+            return (charcount, wordcount, linecount);
+        }
+        Ok(l) => l,
+    };
 
-        for i in range(0, len) {
-            let c = buf[i];
-            charcount += 1;
+    for i in range(0, len) {
+        let c = buf[i];
+        charcount += 1;
 
-            if c == '\n' as u8 {
-                linecount += 1;
+        if c == '\n' as u8 {
+            linecount += 1;
+        }
+
+        if !inword {
+            if c >= 33 /* printable non-space character in ascii */ {
+                inword = true;
+                wordcount += 1;
             }
-
-            if !inword {
-                if c >= 33 /* printable non-space character in ascii */ {
-                    inword = true;
-                    wordcount += 1;
-                }
-            } else {
-                if c <= 32 {
-                    inword = false;
-                }
+        } else {
+            if c <= 32 {
+                inword = false;
             }
         }
     }

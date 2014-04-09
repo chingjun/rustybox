@@ -1,5 +1,6 @@
-use extra::getopts::groups::{getopts,optflag};
+use getopts::{getopts,optflag};
 use std;
+use std::io::println;
 use common;
 use std::path::Path;
 
@@ -10,7 +11,7 @@ pub fn main(args: &[~str]) {
     ];
     let matches = match getopts(args.tail(), opts) {
         Err(f) => {
-            std::io::stderr().write_line(f.to_err_msg());
+            common::err_write_line(f.to_err_msg());
             common::print_usage("pwd: usage: pwd [-LP]", opts);
             std::os::set_exit_status(1);
             return;
@@ -23,12 +24,8 @@ pub fn main(args: &[~str]) {
     if !matches.opt_present("P") {
         match std::os::getenv("PWD") {
             Some(ref cwd) if cwd[0] == '/' as u8 => {
-                match std::io::result(|| {
-                    let cwd_stat = Path::new(cwd.as_slice()).stat();
-                    let dot_stat = Path::new(".").stat();
-                    return (cwd_stat, dot_stat);
-                }) {
-                    Ok((cwd_stat, dot_stat)) => {
+                match (Path::new(cwd.as_slice()).stat(), Path::new(".").stat()) {
+                    (Ok(cwd_stat), Ok(dot_stat)) => {
                         if cwd_stat.unstable.device == dot_stat.unstable.device && cwd_stat.unstable.inode == dot_stat.unstable.inode {
                             println(*cwd);
                             return;
@@ -37,7 +34,7 @@ pub fn main(args: &[~str]) {
                     _ => {
                     }
                 }
-                println("err");
+                println("err"); //TODO
             }
             _ => {}
         }
@@ -45,6 +42,6 @@ pub fn main(args: &[~str]) {
     
     // else print physical path
     let cwd = std::os::getcwd();
-    stdout.write(cwd.as_vec());
-    stdout.write_char('\n');
+    let _ = stdout.write(cwd.as_vec()); //TODO should handle return value?
+    let _ = stdout.write_char('\n'); //TODO should handle return value?
 }

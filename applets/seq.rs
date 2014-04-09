@@ -1,7 +1,8 @@
 use std;
+use common;
 
 fn err_not_float(arg: &str) {
-    std::io::stderr().write_line(format!("seq: invalid floating point argument: {:s}", arg));
+    common::err_write_line(format!("seq: invalid floating point argument: {:s}", arg));
     std::os::set_exit_status(1);
 }
 
@@ -40,24 +41,24 @@ pub fn main(args: &[~str]) {
             }
         }
         _ => {
-            std::io::stderr().write_line("usage: seq [first [incr]] last");
+            common::err_write_line("usage: seq [first [incr]] last");
             std::os::set_exit_status(1);
             return;
         }
     };
 
     if step == 0.0 {
-        std::io::stderr().write_line("seq: zero increment");
+        common::err_write_line("seq: zero increment");
         std::os::set_exit_status(1);
         return;
     }
     if first > last && step > 0.0 {
-        std::io::stderr().write_line("seq: needs negative decrement");
+        common::err_write_line("seq: needs negative decrement");
         std::os::set_exit_status(1);
         return;
     }
     if first < last && step < 0.0 {
-        std::io::stderr().write_line("seq: needs positive increment");
+        common::err_write_line("seq: needs positive increment");
         std::os::set_exit_status(1);
         return;
     }

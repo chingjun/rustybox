@@ -1,4 +1,5 @@
 use std;
+use common;
 
 pub fn main(args: &[~str]) {
     match args {
@@ -11,7 +12,7 @@ pub fn main(args: &[~str]) {
             }
         }
         _ => {
-            std::io::stderr().write_line("usage: sleep seconds");
+            common::err_write_line("usage: sleep seconds");
             std::os::set_exit_status(1);
             return;
         }

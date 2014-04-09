@@ -1,4 +1,4 @@
-use extra::getopts::groups::{getopts,optflag};
+use getopts::{getopts,optflag};
 use std::io::fs::File;
 use std::path::Path;
 use std;
@@ -8,10 +8,9 @@ pub fn main(args: &[~str]) {
     let opts = ~[
         optflag("a", "", "Append the output to the files rather than overwriting them."),
     ];
-    let mut stderr = std::io::stderr();
     let matches = match getopts(args.tail(), opts) {
         Err(f) => {
-            stderr.write_line(f.to_err_msg());
+            common::err_write_line(f.to_err_msg());
             common::print_usage("usage: tee [-a] [file ...]", opts);
             std::os::set_exit_status(1);
             return;
@@ -23,41 +22,33 @@ pub fn main(args: &[~str]) {
 
     // open files
     for filename in matches.free.iter() {
-        match std::io::result(|| {
-            match File::open_mode(&Path::new(filename.as_slice()), if is_append { std::io::Append } else { std::io::Truncate }, std::io::Write) {
-                Some(f) => {files.push(~f as ~Writer);}
-                None => {}
-            }
-        }) {
+        let mode = if is_append { std::io::Append } else { std::io::Truncate };
+        match File::open_mode(&Path::new(filename.as_slice()), mode, std::io::Write) {
+            Ok(f) => {files.push(~f as ~Writer);}
             Err(e) => {
-                std::io::stderr().write_line(format!("tee: {:s}: {:s}", *filename, e.desc));
+                common::err_write_line(format!("tee: {:s}: {:s}", *filename, e.desc));
                 std::os::set_exit_status(1);
             }
-            _ => {}
         };
     }
 
     // wait from stdin and write to files
     let mut buf = [0u8, ..1024];
     let mut stdin = std::io::stdin();
-    while !stdin.eof() {
-        match std::io::result(|| {
-            let len = stdin.read(buf);
-            if len.is_some() {
-                for f in files.mut_iter() {
-                    f.write(buf.slice(0, len.unwrap()))
-                }
-            }
-        }) {
-            Err(e) => {
-                if e.kind != std::io::EndOfFile {
-                    std::io::stderr().write_line(format!("tee: {:s}", e.desc));
+    loop {
+        let len = match stdin.read(buf) {
+            Ok(len) => len,
+            _ => { return; }
+        };
+        for f in files.mut_iter() {
+            match f.write(buf.slice(0, len)) {
+                Err(ref e) if e.kind == std::io::EndOfFile => { break; }
+                Err(e) => {
+                    common::err_write_line(format!("tee: {:s}", e.desc));
                     std::os::set_exit_status(1);
-                } else {
-                    break;
                 }
+                _ => {}
             }
-            _ => {}
         }
     }
 }

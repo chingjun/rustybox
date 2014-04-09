@@ -1,4 +1,4 @@
-use extra::getopts::groups::{getopts,optflag};
+use getopts::{getopts,optflag};
 use std;
 use std::path::Path;
 use common;
@@ -8,11 +8,10 @@ pub fn main(args: &[~str]) {
         optflag("a", "", "List all instances of executables found (instead of just the first one of each)."),
         optflag("s", "", "No output."),
     ];
-    let mut stderr = std::io::stderr();
     let usage = "which [-as] program ...";
     let matches = match getopts(args.tail(), opts) {
         Err(f) => {
-            stderr.write_line(f.to_err_msg());
+            common::err_write_line(f.to_err_msg());
             common::print_usage(usage, opts);
             std::os::set_exit_status(1);
             return;
@@ -34,7 +33,7 @@ pub fn main(args: &[~str]) {
 
     let mut stdout = std::io::stdout();
 
-    match matches.free {
+    match matches.free.as_slice() {
         [] => {
             common::print_usage(usage, opts);
             std::os::set_exit_status(1);
@@ -49,8 +48,8 @@ pub fn main(args: &[~str]) {
                     if check_path(&p) {
                         found = true;
                         if !silent {
-                            stdout.write(p.as_vec());
-                            stdout.write_char('\n');
+                            let _ = stdout.write(p.as_vec()); //TODO should handle return value?
+                            let _ = stdout.write_char('\n'); //TODO should handle return value?
                         }
                         if !showall {
                             break;
@@ -66,15 +65,14 @@ pub fn main(args: &[~str]) {
 }
 
 fn check_path(p: &Path) -> bool {
-    if p.exists() {
-        match std::io::result(|| { p.stat() }) {
-            Ok(filestat) => {
-                if filestat.kind == std::io::TypeFile && filestat.perm & 0111 != 0 {
-                    return true;
-                }
+    if ! p.exists() { return false; }
+    match p.stat() {
+        Ok(filestat) => {
+            if filestat.kind == std::io::TypeFile && filestat.perm & 0111 != 0 {
+                return true;
             }
-            _ => {}
         }
+        _ => {}
     }
     return false;
 }

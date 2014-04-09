@@ -1,4 +1,5 @@
-extern mod extra;
+extern crate getopts;
+extern crate time;
 mod applets;
 mod common;
 
@@ -7,7 +8,7 @@ fn rustybox_main(args: &[~str]) {
     let name = match file_path.filename_str() {
         Some(n) => n,
         None => {
-            std::io::stderr().write_line("unknown error");
+            common::err_write_line("unknown error");
             std::os::set_exit_status(1);
             return;
         }
@@ -18,7 +19,7 @@ fn rustybox_main(args: &[~str]) {
     match applets::find_applet(name) {
         Some(f) => f(args),
         None => {
-            std::io::stderr().write_line(format!("Applet {} not found!", name));
+            common::err_write_line(format!("Applet {} not found!", name));
             std::os::set_exit_status(1);
             return;
         }

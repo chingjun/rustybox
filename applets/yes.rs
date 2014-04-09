@@ -1,4 +1,4 @@
-use std;
+use std::io::println;
 
 pub fn main(args: &[~str]) {
     let default = ~"y";
@@ -7,12 +7,7 @@ pub fn main(args: &[~str]) {
         [_] => &default,
         _ => unreachable!()
     };
-    let mut cont = true;
-    std::io::io_error::cond.trap(|_| {
-        cont = false;
-    }).inside(|| {
-        while cont {
-            println(*s);
-        }
-    });
+    loop {
+        println(*s);
+    }
 }

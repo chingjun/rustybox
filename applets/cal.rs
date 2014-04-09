@@ -1,7 +1,8 @@
-use extra::getopts::groups::{getopts,optflag,optopt};
+use getopts::{getopts,optflag,optopt};
 use std;
+use std::io::{println,print};
 use common;
-use extra::time;
+use time;
 
 static WEEK_HEADER : &'static str = "Su Mo Tu We Th Fr Sa";
 static MONTH_NAMES : [&'static str, ..13] = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -12,11 +13,10 @@ pub fn main(args: &[~str]) {
         optopt("m", "", "Display the specified month.", "month"),
         optflag("y", "", "Display a calendar for the specified year."),
     ];
-    let mut stderr = std::io::stderr();
     let usage = "cal [-y] [-m month] [[month] year]";
     let matches = match getopts(args.tail(), opts) {
         Err(f) => {
-            stderr.write_line(f.to_err_msg());
+            common::err_write_line(f.to_err_msg());
             common::print_usage(usage, opts);
             std::os::set_exit_status(1);
             return;
@@ -24,7 +24,7 @@ pub fn main(args: &[~str]) {
         Ok(m) => { m }
     };
 
-    let (mut month_specified, mut month, year) = match matches.free {
+    let (mut month_specified, mut month, year) = match matches.free.as_slice() {
         [ref m, ref y] => {
             let month = match convert_month(*m) {
                 Some(m) => m,
@@ -107,7 +107,7 @@ fn convert_month(m: &str) -> Option<int> {
     match from_str::<int>(m) {
         Some(m) if m >= 1 && m <= 12 => Some(m),
         _ => {
-            std::io::stderr().write_line(format!("cal: {:s} is neither a month number (1..12) nor a name", m));
+            common::err_write_line(format!("cal: {:s} is neither a month number (1..12) nor a name", m));
             None
         }
     }
@@ -117,7 +117,7 @@ fn convert_year(y: &str) -> Option<int> {
     match from_str::<int>(y) {
         Some(y) if y >= 1 && y <= 9999 => Some(y),
         _ => {
-            std::io::stderr().write_line(format!("cal: year {:s} not in range 1..9999", y));
+            common::err_write_line(format!("cal: year {:s} not in range 1..9999", y));
             None
         }
     }
@@ -126,7 +126,7 @@ fn convert_year(y: &str) -> Option<int> {
 fn number_of_days_in_month(month: int, year: int) -> int {
     match month {
         1|3|5|7|8|10|12 => 31,
-        2 if (year%400 == 0 || (year%4 == 0 && year%100 != 0)) => 29,
+        2 if year%400 == 0 || (year%4 == 0 && year%100 != 0) => 29,
         2 => 28,
         _ => 30
     }
@@ -140,7 +140,7 @@ fn day_of_week(d: int, m: int, y: int) -> int {
              - (y-1)/100 // it is not a leap year if year is divisible by 100
              + (y-1)/400 // but it is a leap year if year is divisible by 400
              + CUMULATIVE_DAYS[m] // cumulative days for a given month
-             + if ((y%400 == 0 || (y%4 == 0 && y%100 != 0)) && m >= 2) {1} else {0} // adjustment for leap year
+             + if (y%400 == 0 || (y%4 == 0 && y%100 != 0)) && m >= 2 {1} else {0} // adjustment for leap year
              + d;
 
     return days%7;
