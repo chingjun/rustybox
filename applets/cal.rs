@@ -140,7 +140,7 @@ fn day_of_week(d: int, m: int, y: int) -> int {
              - (y-1)/100 // it is not a leap year if year is divisible by 100
              + (y-1)/400 // but it is a leap year if year is divisible by 400
              + CUMULATIVE_DAYS[m] // cumulative days for a given month
-             + if (y%400 == 0 || (y%4 == 0 && y%100 != 0)) && m >= 2 {1} else {0} // adjustment for leap year
+             + if (y%400 == 0 || (y%4 == 0 && y%100 != 0)) && m > 2 {1} else {0} // adjustment for leap year
              + d;
 
     return days%7;
